@@ -15,11 +15,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/contrats', require('./routes/contrats'));
-app.use('/api/clients', require('./routes/clients'));
-app.use('/api/vehicules', require('./routes/vehicules'));
-app.use('/api/stats', require('./routes/stats'));
+// Option 2 : Enlever le préfixe /api
+app.use('/vehicules', require('./routes/vehicules'));
+app.use('/auth', require('./routes/auth'));
+app.use('/contrats', require('./routes/contrats'));
+app.use('/clients', require('./routes/clients'));
+app.use('/stats', require('./routes/stats'));
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'API Adem Rent Car fonctionnelle' });
