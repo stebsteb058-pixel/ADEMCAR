@@ -3260,12 +3260,42 @@ function collectData() {
     }; 
 }
 
+// Store token after login (around line 3303)
+const loginData = await response.json();
+if (loginData.token) {
+    localStorage.setItem('token', loginData.token);  // Save token
+    localStorage.setItem('user', JSON.stringify(loginData.user));
+}
+
+// Your apiCall function should look like this:
 async function apiCall(endpoint, options = {}) {
-    const defaultOptions = { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` } };
-    const response = await fetch(`${API_URL}${endpoint}`, { ...defaultOptions, ...options });
-    if (response.status === 401) { logout(); throw new Error('Session expirée'); }
-    if (!response.ok) { const error = await response.json(); throw new Error(error.message || 'Erreur serveur'); }
-    return response.json();
+    const token = localStorage.getItem('token');
+    
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })  // Add token if exists
+        }
+    };
+    
+    const mergedOptions = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers
+        }
+    };
+    
+    const response = await fetch(`https://ademcar.onrender.com/api${endpoint}`, mergedOptions);
+    
+    if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        throw new Error('Session expirée');
+    }
+    
+    return response;
 }
 
 async function login() {
