@@ -91,4 +91,14 @@ router.post('/init', async (req, res) => {
             });
             
             res.json({ message: 'Utilisateurs créés avec succès' });
+        } else {
+            res.json({ message: 'Utilisateurs déjà existants' });
         }
+        
+    } catch (error) {
+        console.error('Init error:', error.message);
+        res.status(500).json({ message: 'Erreur: ' + error.message });
+    }
+});
+
+module.exports = router;
