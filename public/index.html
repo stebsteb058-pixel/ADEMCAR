@@ -1275,10 +1275,11 @@ tr:hover { background: rgba(0,0,0,0.02); }
 <div id="actionModal" class="modal"><div class="modal-content"><h3 id="modalTitle">Actions sur contrat</h3><div id="modalBody"></div><div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Annuler</button><button class="btn-pdf" onclick="executeModalAction()">Valider</button></div></div></div>
 
 <script>
- const API_URL = 'https://ademcar.onrender.com/api';
+ const API_URL = 'https://ademcar.onrender.com';
   //  const API_URL = 'https://adem-rent-car-2.onrender.com/api';
+let authToken = null;
 
-let authToken = localStorage.getItem('authToken');
+//let authToken = localStorage.getItem('authToken');
 let currentUser = null;
 let allContrats = [];
 let allClients = [];
@@ -3271,88 +3272,173 @@ function collectData() {
     }; 
 }
 // Remplacer la fonction apiCall complète
+// Find your apiCall function (around line 3276)
 async function apiCall(endpoint, options = {}) {
-if (!authToken) {
-    console.log("Token manquant");
-    logout();
-    throw new Error("Token manquant");
-}
-    const response = await fetch(`${API_URL}${endpoint}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`,
-            ...(options.headers || {})
-        }
-    });
-
-    if (response.status === 401) {
-        console.log('Session expirée');
-        logout();
-        throw new Error('Session expirée - Veuillez vous reconnecter');
+    // Get token from global variable or sessionStorage
+    let token = authToken;
+    if (!token) {
+        token = sessionStorage.getItem('authToken');
+        if (token) authToken = token;
     }
-
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Erreur serveur' }));
-        throw new Error(error.message || 'Erreur serveur');
+    
+    console.log(`API Call to ${endpoint}, Token present:`, !!token);
+    console.log(`Token value (first 20 chars):`, token ? token.substring(0, 20) + '...' : 'none');
+    
+    if (!token) {
+        console.error('Token manquant - redirecting to login');
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('loginModal').style.display = 'block';
+        throw new Error('Token manquant');
     }
-
-    return response.json();
-}
-
-// Supprimer la fonction refreshToken (elle n'existe pas sur le backend)
-// async function refreshToken() { ... }  // À SUPPRIMER
-
-// Corriger la fonction login
-async function login() {
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
-    const errorDiv = document.getElementById('loginError');
-    errorDiv.innerText = 'Connexion en cours...';
+    
+    // ✅ Ajoute /api si nécessaire
+    let fullEndpoint = endpoint;
+    if (!endpoint.startsWith('/api/') && !endpoint.startsWith('/api')) {
+        fullEndpoint = `/api${endpoint}`;
+        console.log(`🔄 Auto-ajout /api: ${endpoint} -> ${fullEndpoint}`);
+    } else {
+        fullEndpoint = endpoint;
+    }
+    
+    // ✅ Assurez-vous que le header Authorization est au bon format
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,  // Le format "Bearer " est important
+        ...options.headers
+    };
+    
+    console.log(`Making request to: ${API_URL}${fullEndpoint}`);
+    console.log(`Authorization header: Bearer ${token ? '***' : 'missing'}`);
     
     try {
-        const response = await fetch(`${API_URL}/auth/login`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ username, password }) 
+        const response = await fetch(`${API_URL}${fullEndpoint}`, {
+            ...options,
+            headers
+        });
+        
+        console.log(`Response status: ${response.status}`);
+        
+        if (response.status === 401) {
+            console.error('Token expired or invalid - clearing session');
+            sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('currentUser');
+            authToken = null;
+            currentUser = null;
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginModal').style.display = 'block';
+            throw new Error('Session expirée, veuillez vous reconnecter');
+        }
+        
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.message || `Erreur ${response.status}`);
+        }
+        
+        return response.json();
+    } catch (error) {
+        console.error(`API Error for ${endpoint}:`, error);
+        throw error;
+    }
+}
+async function login() {
+    const usernameInput = document.getElementById('loginUsername');
+    const passwordInput = document.getElementById('loginPassword');
+    const errorDiv = document.getElementById('loginError');
+    
+    if (!usernameInput || !passwordInput) {
+        console.error('Form elements not found!');
+        if (errorDiv) errorDiv.innerText = '❌ Erreur de formulaire: champs manquants';
+        return;
+    }
+    
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    
+    if (!username || !password) {
+        if (errorDiv) errorDiv.innerText = '❌ Veuillez entrer votre nom d\'utilisateur et mot de passe';
+        return;
+    }
+    
+    if (errorDiv) errorDiv.innerText = 'Connexion en cours...';
+    
+    try {
+        // Use /api/auth/login (not /api/api/auth/login)
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
         });
         
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ message: 'Identifiants incorrects' }));
-            throw new Error(error.message || 'Identifiants incorrects');
+            const errorText = await response.text();
+            let errorMessage = 'Identifiants incorrects';
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.message || errorJson.error || errorMessage;
+            } catch(e) {
+                errorMessage = `Erreur ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
         }
         
         const data = await response.json();
         authToken = data.token;
         currentUser = data.user;
         
-        console.log('Utilisateur connecté:', currentUser);
+        console.log('✅ Utilisateur connecté:', currentUser);
+        console.log('✅ Token stored:', authToken ? 'Yes' : 'No');
         
-        // Stocker dans sessionStorage uniquement
+        // Stocker dans sessionStorage
         sessionStorage.setItem('authToken', authToken);
         sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
         
+        // Verify token was stored
+        const storedToken = sessionStorage.getItem('authToken');
+        console.log('Token in sessionStorage:', storedToken ? 'Yes' : 'No');
+        
         // Cacher le modal de login et afficher le dashboard
-        document.getElementById('loginModal').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
+        const loginModal = document.getElementById('loginModal');
+        const dashboard = document.getElementById('dashboard');
+        
+        if (loginModal) loginModal.style.display = 'none';
+        if (dashboard) dashboard.style.display = 'block';
         
         // Mettre à jour l'affichage
-        if (currentUser) {
-            document.getElementById('userName').innerText = currentUser.username;
-            document.getElementById('userRole').innerText = currentUser.role === 'admin' ? 'Adem Rent Car' : currentUser.company;
-        }
+        const userNameSpan = document.getElementById('userName');
+        const userRoleSpan = document.getElementById('userRole');
+        
+        if (userNameSpan) userNameSpan.innerText = currentUser.username;
+        if (userRoleSpan) userRoleSpan.innerText = currentUser.role === 'admin' ? 'Adem Rent Car' : currentUser.company;
         
         // Charger les données
-        await loadAllData();
+        if (typeof loadAllData === 'function') {
+            await loadAllData();
+        }
         
         showToast(`✅ Bienvenue ${currentUser.username}`);
         
     } catch (error) { 
-        console.error('Login error:', error);
-        errorDiv.innerText = '❌ ' + error.message; 
+        console.error('❌ Login error:', error);
+        if (errorDiv) errorDiv.innerText = '❌ ' + error.message;
     }
 }
 
+function showToast(message) {
+    // Create temporary toast element if you don't have one
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.right = '20px';
+    toast.style.backgroundColor = '#4CAF50';
+    toast.style.color = 'white';
+    toast.style.padding = '12px 24px';
+    toast.style.borderRadius = '4px';
+    toast.style.zIndex = '9999';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
 // Corriger checkSession
 async function checkSession() {
     const savedToken = sessionStorage.getItem('authToken');
