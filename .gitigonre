@@ -1,0 +1,5 @@
+echo node_modules/ >> .gitignore
+echo dist/ >> .gitignore
+echo .env >> .gitignore
+echo adem_rent_car.db >> .gitignore
+echo *.exe >> .gitignore

@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<title>Adem Rent Car - Contrat Pro Bilingue</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body.theme-gris { --primary: #6c757d; --primary-dark: #5a6268; --danger: #dc3545; --light-bg: #f8f9fa; }
+body.theme-bleu { --primary: #007bff; --primary-dark: #0056b3; --danger: #dc3545; --light-bg: #e8f4ff; }
+body.theme-rouge { --primary: #dc3545; --primary-dark: #b02a37; --danger: #dc3545; --light-bg: #ffe8e8; }
+
+.modal-login {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+.login-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    width: 380px;
+    text-align: center;
+}
+.login-card h2 { color: var(--primary); margin-bottom: 25px; }
+.login-card input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+}
+.login-card button {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.error-msg { color: var(--danger); margin-top: 15px; }
+
+.dashboard {
+    display: none;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #f0f2f5;
+    min-height: 100vh;
+}
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    padding: 15px 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.logout-btn { background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+.theme-selector { display: flex; gap: 10px; align-items: center; }
+.theme-btn { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
+.theme-bleu-btn { background: #007bff; }
+.theme-rouge-btn { background: #dc3545; }
+.theme-gris-btn { background: #6c757d; }
+
+.stats-dashboard {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+.stat-card .number { font-size: 32px; font-weight: bold; color: var(--primary); }
+
+.tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    background: white;
+    padding: 10px;
+    border-radius: 15px;
+    flex-wrap: wrap;
+}
+.tab-btn {
+    padding: 12px 25px;
+    border: none;
+    background: #e9ecef;
+    cursor: pointer;
+    border-radius: 10px;
+    font-weight: bold;
+}
+.tab-btn.active { background: var(--primary); color: white; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+.card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+.card-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 12px 15px; font-weight: bold; display: flex; justify-content: space-between; }
+.card-body { padding: 15px; }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 10px; font-weight: 600; color: #555; margin-bottom: 3px; }
+.form-group input, .form-group select { width: 100%; padding: 8px 10px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 12px; }
+.double-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.triple-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.equipment-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.equipment-item { display: flex; align-items: center; gap: 8px; padding: 6px; background: #f8f9fa; border-radius: 8px; }
+.bottom-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px; }
+.penalty-info { background: #fff3cd; padding: 8px; border-radius: 8px; font-size: 11px; margin-top: 10px; }
+.form-actions { text-align: center; margin-top: 20px; }
+.btn-pdf { background: var(--danger); color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 0 5px; }
+.btn-cancel { background: #6c757d; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; margin: 0 5px; }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #28a745; color: white; padding: 10px 20px; border-radius: 50px; z-index: 1000; animation: fadeOut 2.5s forwards; }
+@keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+
+.table-container { background: white; border-radius: 20px; overflow: auto; margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e9ecef; }
+th { background: #f8f9fa; }
+.btn-small { background: var(--primary); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; margin: 2px; font-size: 11px; }
+.btn-small-danger { background: var(--danger); }
+.search-bar { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
+.search-bar input { flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; }
+.filter-group { display: flex; gap: 10px; align-items: center; }
+.filter-group select { padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; }
+.badge-total { background: #28a745; color: white; border-radius: 30px; padding: 2px 10px; font-size: 12px; margin-left: 10px; }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; justify-content: center; align-items: center; }
+.modal-content { background: white; border-radius: 20px; padding: 25px; width: 500px; max-width: 90%; }
+.modal-content h3 { margin-bottom: 20px; color: var(--primary); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.client-selector { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
+.client-selector select { flex: 1; padding: 8px; border-radius: 8px; border: 2px solid #e9ecef; }
+</style>
+</head>
+<body class="theme-bleu">
+
+<div id="loginModal" class="modal-login">
+    <div class="login-card">
+        <h2>🔐 ADEM RENT CAR</h2>
+        <input type="text" id="loginUsername" placeholder="Nom d'utilisateur" value="admin">
+        <input type="password" id="loginPassword" placeholder="Mot de passe" value="admin123">
+        <button onclick="login()">Se connecter</button>
+        <div id="loginError" class="error-msg"></div>
+        <div style="margin-top:15px; font-size:12px;">admin/admin123 | sous1/sous123 | sous2/sous456</div>
+    </div>
+</div>
+
+<div id="dashboard" class="dashboard">
+    <div class="dashboard-header">
+        <div><strong>👤 <span id="userName"></span></strong> • <span id="userRole"></span></div>
+        <div class="theme-selector">
+            <span>🎨 Thème :</span>
+            <div class="theme-btn theme-bleu-btn" onclick="setTheme('bleu')"></div>
+            <div class="theme-btn theme-rouge-btn" onclick="setTheme('rouge')"></div>
+            <div class="theme-btn theme-gris-btn" onclick="setTheme('gris')"></div>
+        </div>
+        <button class="logout-btn" onclick="logout()">🚪 Déconnexion</button>
+    </div>
+
+    <div class="stats-dashboard" id="statsDashboard"></div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('formulaire')">📝 Nouveau contrat</button>
+        <button class="tab-btn" onclick="showTab('contrats')">📋 Contrats <span id="totalContratsBadge" class="badge-total"></span></button>
+        <button class="tab-btn" onclick="showTab('clients')">👥 Clients</button>
+        <button class="tab-btn" onclick="showTab('vehicules')">🚗 Véhicules</button>
+        <button class="tab-btn" onclick="showTab('dashboardAdmin')" id="tabAdminBtn" style="display:none;">📊 Dashboard Admin</button>
+    </div>
+
+    <!-- TAB FORMULAIRE -->
+    <div id="tabFormulaire" class="tab-content active">
+        <div class="cards-grid">
+            <div class="card">
+                <div class="card-header"><span>I - LOCATAIRE / المستأجر</span><span>السائق الأول</span></div>
+                <div class="card-body">
+                    <div class="client-selector">
+                        <select id="selectClient" style="flex:1;"><option value="">-- Charger un client existant --</option></select>
+                        <button class="btn-small" onclick="loadSelectedClient()" style="background:#28a745;">📂 Charger</button>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Nom / الإسم</label><input type="text" id="nom" placeholder="Nom"></div>
+                        <div class="form-group"><label>Prénom / اللقب</label><input type="text" id="prenom" placeholder="Prénom"></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Date naissance / تاريخ الميلاد</label><input type="date" id="dateNaiss"></div>
+                        <div class="form-group"><label>Nationalité / الجنسية</label><input type="text" id="nationalite" placeholder="Nationalité"></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>CIN/Passeport / بطاقة تعريف</label><input type="text" id="cin" required></div>
+                        <div class="form-group"><label>Délivré le / تاريخ التسليم</label><input type="date" id="cinDate"></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Permis / رخصة السياقة</label><input type="text" id="permis"></div>
+                        <div class="form-group"><label>Délivré le / تاريخ التسليم</label><input type="date" id="permisDate"></div>
+                    </div>
+                    <div class="form-group"><label>Adresse / العنوان</label><input type="text" id="adresse"></div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Téléphone / هاتف</label><input type="tel" id="tel"></div>
+                        <div class="form-group"><label>Date entrée Tunisie</label><input type="date" id="dateEntree"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><span>II - 2ème CONDUCTEUR / السائق الثاني</span><span>السائق الثاني</span></div>
+                <div class="card-body">
+                    <div class="client-selector">
+                        <select id="selectConducteur2" style="flex:1;"><option value="">-- Charger un conducteur existant --</option></select>
+                        <button class="btn-small" onclick="loadSelectedConducteur2()" style="background:#28a745;">📂 Charger</button>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Nom / الإسم</label><input type="text" id="cond2_nom"></div>
+                        <div class="form-group"><label>Prénom / اللقب</label><input type="text" id="cond2_prenom"></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Date naissance</label><input type="date" id="cond2_naissance"></div>
+                        <div class="form-group"><label>Nationalité</label><input type="text" id="cond2_nationalite"></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>CIN/Passeport</label><input type="text" id="cond2_cin"required></div>
+                        <div class="form-group"><label>Délivré le</label><input type="date" id="cond2_cinDate"></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Permis</label><input type="text" id="cond2_permis"></div>
+                        <div class="form-group"><label>Délivré le</label><input type="date" id="cond2_permisDate"></div>
+                    </div>
+                    <div class="form-group"><label>Adresse</label><input type="text" id="cond2_adresse"></div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Téléphone</label><input type="tel" id="cond2_tel"></div>
+                        <div class="form-group"><label>Date entrée</label><input type="date" id="cond2_dateEntree"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><span>III - VEHICULE / السيارة</span><span>نوعية السيارة</span></div>
+                <div class="card-body">
+                    <div class="client-selector">
+                        <select id="selectVehicule" style="flex:1;"><option value="">-- Charger un véhicule existant --</option></select>
+                        <button class="btn-small" onclick="loadSelectedVehicule()" style="background:#28a745;">🚗 Charger</button>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Modèle / الموديل</label><input type="text" id="modele"></div>
+                        <div class="form-group"><label>Immatriculation / ترقيم</label><input type="text" id="immat"></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Kms départ / كلم إنطلاق</label><input type="number" id="kmsDepart" value="0" onchange="calculerPenalite()"></div>
+                        <div class="form-group"><label>Kms retour / كلم عودة</label><input type="number" id="kmsRetour" value="0" onchange="calculerPenalite()"></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Carburant / وقود</label><select id="carburant"><option>Essence</option><option>Diesel</option></select></div>
+                        <div class="form-group"><label>Niveau départ / مستوى الوقود</label><select id="niveauCarbu"><option>Plein</option><option>3/4</option><option>1/2</option><option>1/4</option><option>Vide</option></select></div>
+                    </div>
+                    <div class="penalty-info">📍 Pénalité: dépassement 350km/jour → 0.500 DT/km</div>
+                </div>
+            </div>
+        </div>
+        <div class="bottom-cards">
+            <div class="card">
+                <div class="card-header"><span>IV - EQUIPEMENTS / التجهيزات</span><span>التجهيزات</span></div>
+                <div class="card-body"><div class="equipment-grid">
+                    <div class="equipment-item"><input type="checkbox" id="roueSecours" checked><label>🛞 Roue secours</label></div>
+                    <div class="equipment-item"><input type="checkbox" id="cric" checked><label>🔧 Cric</label></div>
+                    <div class="equipment-item"><input type="checkbox" id="radio" checked><label>📻 Radio</label></div>
+                    <div class="equipment-item"><input type="checkbox" id="enjoliveur" checked><label>✨ Enjoliveur</label></div>
+                    <div class="equipment-item"><input type="checkbox" id="retroviseurs" checked><label>🪞 Rétroviseurs</label></div>
+                    <div class="equipment-item"><input type="checkbox" id="climatiseur" checked><label>❄️ Climatiseur</label></div>
+                </div></div>
+            </div>
+            <div class="card">
+                <div class="card-header"><span>V - LOCATION / مدة الكراء</span><span>مدة الكراء</span></div>
+                <div class="card-body">
+                    <div class="double-group">
+                        <div class="form-group"><label>Date départ / تاريخ الإنطلاق</label><input type="date" id="dateDepart" onchange="calculerJours();syncDateSignature();"></div>
+                        <div class="form-group"><label>Heure / ساعة</label><input type="time" id="heureDepart" onchange="calculerJours()"></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Date retour / تاريخ العودة</label><input type="date" id="dateRetour" onchange="calculerJours()"></div>
+                        <div class="form-group"><label>Heure / ساعة</label><input type="time" id="heureRetour" onchange="calculerJours()"></div>
+                    </div>
+                    <div class="triple-group">
+                        <div class="form-group"><label>Nb jours / عدد الأيام</label><input type="text" id="nbJours" readonly></div>
+                        <div class="form-group"><label>Prix journalier / السعر اليومي</label><input type="number" id="prixJournalier" value="80" onchange="calculerTotal()"></div>
+                        <div class="form-group"><label>Location HT / الكراء</label><input type="text" id="locationHT" readonly></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Assurance RC / تأمين</label><input type="number" id="assuranceRC" value="0" onchange="calculerTotal()"></div>
+                        <div class="form-group"><label>Assurance pers.</label><input type="number" id="assurancePers" value="0" onchange="calculerTotal()"></div>
+                    </div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Timbres / طوابع</label><input type="text" id="timbres" value="1" readonly></div>
+                          <div class="form-group"><label>Taxe journalière /معلوم يومي على كراء السيارات</label><input type="text" id="taxe" value="2" readonly></div>
+                        <div class="form-group"><label>TVA 19%</label><input type="text" id="tva" readonly></div>
+                    </div>
+                    <div class="form-group"><label>TOTAL TTC (DT) / المجموع</label><input type="text" id="totalTTC" readonly style="font-weight:bold; color:#28a745; font-size:16px;"></div>
+                    <div class="double-group">
+                        <div class="form-group"><label>Lieu signature / مكان التوقيع</label><input type="text" id="lieu" value="Menzel Bourguiba"></div>
+                        <div class="form-group"><label>Date signature / تاريخ التوقيع</label><input type="date" id="dateSignature"readonly></div>
+                    </div>
+                    <div class="form-group"><label>Dommages / الأضرار</label><input type="text" id="dommages"></div>
+                </div>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button class="btn-pdf" onclick="generatePDF()">📄 Générer contrat PDF</button>
+            <button class="btn-cancel" onclick="clearForm()">🗑️ Nouveau</button>
+        </div>
+    </div>
+
+    <!-- TAB CONTRATS -->
+    <div id="tabContrats" class="tab-content">
+        <div class="search-bar">
+            <input type="text" id="searchContrat" placeholder="🔍 Rechercher par numéro..." onkeyup="filterContrats()">
+            <div class="filter-group" id="creatorFilterGroup" style="display:none;">
+                <label>👤 Filtrer par créateur :</label>
+                <select id="filterCreator" onchange="filterContrats()"></select>
+            </div>
+        </div>
+        <div class="table-container">
+            <table id="contratsTable">
+                <thead id="contratsHeader"></thead>
+                <tbody id="contratsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tabClients" class="tab-content"><div class="table-container">\n<table>\n<thead>\n<tr>\n<th>Type</th><th>Nom complet</th><th>Téléphone</th><th>CIN</th><th>Action</th>\n</tr>\n</thead>\n<tbody id="clientsBody"></tbody>\n</td>\n</div></div>
+    <div id="tabVehicules" class="tab-content"><div class="table-container">\n</table>\n<thead>\n<tr>\n<th>Modèle</th>\n<th>Immatriculation</th>\n<th>Action</th>\n</tr>\n</thead>\n<tbody id="vehiculesBody"></tbody>\n</table>\n</div></div>
+    <div id="tabDashboardAdmin" class="tab-content">
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">📅 Filtre par année</div>
+            <div class="card-body">
+                <select id="anneeFilter" onchange="loadAdminDashboard()" style="padding:8px; border-radius:8px;"></select>
+            </div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+            <div class="card-header">📋 Détail des contrats par sous-traitant et par mois</div>
+            <div class="card-body">
+                <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <select id="detailSousTraitant" onchange="loadDetailContrats()">
+                        <option value="">Tous les sous-traitants</option>
+                        <option value="admin">Administrateur</option>
+                        <option value="sous1">Sous-traitant 1</option>
+                        <option value="sous2">Sous-traitant 2</option>
+                    </select>
+                    <select id="detailMois" onchange="loadDetailContrats()">
+                        <option value="">Tous les mois</option>
+                        <option value="1">Janvier</option><option value="2">Février</option><option value="3">Mars</option>
+                        <option value="4">Avril</option><option value="5">Mai</option><option value="6">Juin</option>
+                        <option value="7">Juillet</option><option value="8">Août</option><option value="9">Septembre</option>
+                        <option value="10">Octobre</option><option value="11">Novembre</option><option value="12">Décembre</option>
+                    </select>
+                    <select id="detailAnnee" onchange="loadDetailContrats()">
+                        <option value="">Toutes les années</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table id="detailContratsTable">
+                        <thead>
+                            <tr>
+                                <th>Sous-traitant</th><th>Mois</th><th>Année</th><th>N° Contrat</th><th>Date départ</th><th>Date retour</th><th>Nb jours</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailContratsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="actionModal" class="modal"><div class="modal-content"><h3 id="modalTitle">Actions sur contrat</h3><div id="modalBody"></div><div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Annuler</button><button class="btn-pdf" onclick="executeModalAction()">Valider</button></div></div></div>
+
+<script>
+const API_URL = 'http://localhost:5000/api';
+let authToken = localStorage.getItem('authToken');
+let currentUser = null;
+let allContrats = [];
+let allClients = [];
+let allVehicules = [];
+let currentActionContrat = null;
+let contratChart = null;
+
+pdfMake.fonts = {
+    Roboto: {
+        normal: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Regular.ttf',
+        bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Medium.ttf',
+        italics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Italic.ttf',
+        bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-MediumItalic.ttf'
+    },
+    NotoNaskhArabic: {
+        normal: 'https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Regular.ttf',
+        bold: 'https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Bold.ttf'
+    }
+};
+
+function getMonthName(monthNumber) {
+    const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    return months[monthNumber - 1] || '';
+}
+
+function populateDetailYearFilter() {
+    const yearsSet = new Set();
+    allContrats.forEach(contrat => { if (contrat.dateDepart) { const year = new Date(contrat.dateDepart).getFullYear(); if (!isNaN(year)) yearsSet.add(year); } });
+    const years = Array.from(yearsSet).sort((a,b)=>b-a);
+    const select = document.getElementById('detailAnnee');
+    if (select) {
+        select.innerHTML = '<option value="">Toutes les années</option>';
+        years.forEach(y => { select.innerHTML += `<option value="${y}">${y}</option>`; });
+    }
+}
+
+function loadDetailContrats() {
+    if (currentUser?.role !== 'admin') return;
+    const selectedCreator = document.getElementById('detailSousTraitant').value;
+    const selectedMonth = document.getElementById('detailMois').value;
+    const selectedYear = document.getElementById('detailAnnee').value;
+    let filtered = [...allContrats];
+    if (selectedCreator) filtered = filtered.filter(c => c.createur === selectedCreator);
+    if (selectedYear) filtered = filtered.filter(c => { if (!c.dateDepart) return false; const year = new Date(c.dateDepart).getFullYear(); return year == selectedYear; });
+    if (selectedMonth) filtered = filtered.filter(c => { if (!c.dateDepart) return false; const month = new Date(c.dateDepart).getMonth() + 1; return month == selectedMonth; });
+    filtered.sort((a,b) => new Date(b.dateDepart) - new Date(a.dateDepart));
+    const tbody = document.getElementById('detailContratsBody');
+    tbody.innerHTML = '';
+    if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">📭 Aucun contrat trouvé</td><tr>'; return; }
+    filtered.forEach(contrat => {
+        const row = tbody.insertRow();
+        const dateDepart = contrat.dateDepart ? new Date(contrat.dateDepart).toLocaleDateString('fr-FR') : '-';
+        const dateRetour = contrat.dateRetour ? new Date(contrat.dateRetour).toLocaleDateString('fr-FR') : '-';
+        const mois = contrat.dateDepart ? new Date(contrat.dateDepart).getMonth() + 1 : '-';
+        const annee = contrat.dateDepart ? new Date(contrat.dateDepart).getFullYear() : '-';
+        const nomCreateur = contrat.createurNom || contrat.createur || '-';
+        row.insertCell(0).innerHTML = nomCreateur;
+        row.insertCell(1).innerHTML = mois !== '-' ? getMonthName(mois) : '-';
+        row.insertCell(2).innerHTML = annee;
+        row.insertCell(3).innerHTML = `<strong>${contrat.numero_contrat || 'N/A'}</strong>`;
+        row.insertCell(4).innerHTML = dateDepart;
+        row.insertCell(5).innerHTML = dateRetour;
+        row.insertCell(6).innerHTML = contrat.nbJours || '0';
+    });
+}
+
+function populateYearFilter() {
+    const yearsSet = new Set();
+    allContrats.forEach(contrat => { if (contrat.dateDepart) { const year = new Date(contrat.dateDepart).getFullYear(); if (!isNaN(year)) yearsSet.add(year); } });
+    const years = Array.from(yearsSet).sort((a,b)=>b-a);
+    const select = document.getElementById('anneeFilter');
+    if (select) {
+        select.innerHTML = '<option value="">Toutes les années</option>';
+        years.forEach(y => { select.innerHTML += `<option value="${y}">${y}</option>`; });
+        const currentYear = new Date().getFullYear();
+        if (years.includes(currentYear)) select.value = currentYear;
+    }
+}
+
+function updateChart(months, datasets) {
+    const ctx = document.getElementById('contratsChart')?.getContext('2d');
+    if (ctx) {
+        if (contratChart) contratChart.destroy();
+        contratChart = new Chart(ctx, { type: 'line', data: { labels: months, datasets: datasets }, options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { mode: 'index', intersect: false }, legend: { position: 'top' } }, scales: { y: { beginAtZero: true, title: { display: true, text: 'Nombre de contrats' } }, x: { title: { display: true, text: 'Mois' } } } } });
+    }
+}
+
+async function loadAdminDashboard() {
+    if (currentUser?.role !== 'admin') return;
+    const annee = document.getElementById('anneeFilter')?.value;
+    let filteredContrats = [...allContrats];
+    if (annee) filteredContrats = filteredContrats.filter(c => { if (!c.dateDepart) return false; const year = new Date(c.dateDepart).getFullYear(); return year == annee; });
+    const creatorsMap = new Map();
+    filteredContrats.forEach(c => { if (c.createur && !creatorsMap.has(c.createur)) creatorsMap.set(c.createur, c.createurNom || c.createur); });
+    const creators = Array.from(creatorsMap.keys()).sort();
+    const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    const counts = {};
+    for (let m = 1; m <= 12; m++) counts[m] = {};
+    creators.forEach(creator => { for (let m=1; m<=12; m++) counts[m][creator] = 0; });
+    filteredContrats.forEach(c => { if (!c.dateDepart) return; const date = new Date(c.dateDepart); const month = date.getMonth() + 1; const creator = c.createur; if (creator && counts[month] && counts[month][creator] !== undefined) counts[month][creator]++; });
+    const thead = document.getElementById('dashboardHeader');
+    const tbody = document.getElementById('dashboardBody');
+    if (thead && tbody) {
+        let headerRow = '<table><th>Mois</th>';
+        creators.forEach(creator => { headerRow += `<th>${creatorsMap.get(creator)}</th>`; });
+        headerRow += '<th>Total</th></tr>';
+        thead.innerHTML = headerRow;
+        tbody.innerHTML = '';
+        for (let m = 1; m <= 12; m++) {
+            let row = `<tr><td><strong>${months[m-1]}</strong></td>`;
+            let totalMois = 0;
+            creators.forEach(creator => { const count = counts[m][creator] || 0; totalMois += count; row += `<td>${count}</td>`; });
+            row += `<td><strong>${totalMois}</strong></td>`;
+            tbody.innerHTML += row;
+        }
+        let totalRow = '<tr><td><strong>Total</strong></td>';
+        creators.forEach(creator => { let totalCreator = 0; for (let m=1; m<=12; m++) totalCreator += counts[m][creator] || 0; totalRow += `<td><strong>${totalCreator}</strong></table>`; });
+        const grandTotal = filteredContrats.length;
+        totalRow += `<td><strong>${grandTotal}</strong></td>`;
+        tbody.innerHTML += totalRow;
+    }
+    const datasets = [];
+    const colorPalette = [{ border: 'rgb(54, 162, 235)', background: 'rgba(54, 162, 235, 0.2)' }, { border: 'rgb(255, 99, 132)', background: 'rgba(255, 99, 132, 0.2)' }, { border: 'rgb(75, 192, 192)', background: 'rgba(75, 192, 192, 0.2)' }, { border: 'rgb(255, 159, 64)', background: 'rgba(255, 159, 64, 0.2)' }];
+    creators.forEach((creator, idx) => { const dataByMonth = []; for (let m = 1; m <= 12; m++) dataByMonth.push(counts[m][creator] || 0); datasets.push({ label: creatorsMap.get(creator), data: dataByMonth, borderColor: colorPalette[idx % colorPalette.length].border, backgroundColor: colorPalette[idx % colorPalette.length].background, tension: 0.3, fill: true }); });
+    const totalByMonth = []; for (let m = 1; m <= 12; m++) { let sum = 0; creators.forEach(creator => { sum += counts[m][creator] || 0; }); totalByMonth.push(sum); }
+    datasets.push({ label: 'Total général', data: totalByMonth, borderColor: 'rgb(0, 0, 0)', backgroundColor: 'rgba(0, 0, 0, 0.1)', borderDash: [5, 5], tension: 0.3, fill: false });
+    updateChart(months, datasets);
+}
+
+function updateAdminDashboardVisibility() {
+    const adminTab = document.getElementById('tabAdminBtn');
+    if (adminTab) adminTab.style.display = currentUser?.role === 'admin' ? 'inline-block' : 'none';
+}
+
+function setTheme(theme) { document.body.className = `theme-${theme}`; sessionStorage.setItem('theme', theme); }
+function loadTheme() { let theme = sessionStorage.getItem('theme') || 'bleu'; document.body.className = `theme-${theme}`; }
+
+function calculerPenalite() { 
+    let kd=parseInt(document.getElementById('kmsDepart').value)||0, kr=parseInt(document.getElementById('kmsRetour').value)||0, nj=parseInt(document.getElementById('nbJours').value)||1, tot=kr-kd, lim=350*nj, pen=0; 
+    if(tot>lim) pen=(tot-lim)*0.5; 
+    calculerTotal(); 
+}
+
+function calculerJours() { 
+    let d1=document.getElementById('dateDepart').value, h1=document.getElementById('heureDepart').value, d2=document.getElementById('dateRetour').value, h2=document.getElementById('heureRetour').value; 
+    if(d1&&d2){ 
+        let j=Math.ceil((new Date(`${d2}T${h2||'00:00'}`)-new Date(`${d1}T${h1||'00:00'}`))/(86400000)); 
+        document.getElementById('nbJours').value=j>0?j:1; 
+        calculerPenalite();
+        syncDateSignature();
+    } 
+}
+function syncDateSignature() {
+    let dateDepart = document.getElementById('dateDepart').value;
+    let dateSignature = document.getElementById('dateSignature');
+    if (dateDepart) dateSignature.value = dateDepart;
+}
+function calculerTotal() { 
+    let j = parseInt(document.getElementById('nbJours').value) || 1;
+    let p = parseFloat(document.getElementById('prixJournalier').value) || 0;
+    let timbres = 1; 
+        let taxeJournaliere = 2 * j;   
+
+    let tva = 19 * j;           
+    let locationHT = (p * j) - tva;   
+    let totalTTC = (p * j) + timbres + taxeJournaliere ; 
+    if (locationHT < 0) locationHT = 0;
+    document.getElementById('locationHT').value = locationHT.toFixed(2);
+    document.getElementById('tva').value = tva.toFixed(2);
+        document.getElementById('taxe').value = taxeJournaliere;  
+
+    document.getElementById('totalTTC').value = totalTTC.toFixed(2);
+}
+
+function collectData() { 
+    return { 
+        nom:document.getElementById('nom').value, prenom:document.getElementById('prenom').value, dateNaiss:document.getElementById('dateNaiss').value, nationalite:document.getElementById('nationalite').value, cin:document.getElementById('cin').value, cinDate:document.getElementById('cinDate').value, permis:document.getElementById('permis').value, permisDate:document.getElementById('permisDate').value, adresse:document.getElementById('adresse').value, tel:document.getElementById('tel').value, dateEntree:document.getElementById('dateEntree').value,
+        cond2_nom:document.getElementById('cond2_nom').value, cond2_prenom:document.getElementById('cond2_prenom').value, cond2_naissance:document.getElementById('cond2_naissance').value, cond2_nationalite:document.getElementById('cond2_nationalite').value, cond2_cin:document.getElementById('cond2_cin').value, cond2_cinDate:document.getElementById('cond2_cinDate').value, cond2_permis:document.getElementById('cond2_permis').value, cond2_permisDate:document.getElementById('cond2_permisDate').value, cond2_adresse:document.getElementById('cond2_adresse').value, cond2_tel:document.getElementById('cond2_tel').value, cond2_dateEntree:document.getElementById('cond2_dateEntree').value,
+        modele:document.getElementById('modele').value, immat:document.getElementById('immat').value, kmsDepart:document.getElementById('kmsDepart').value, kmsRetour:document.getElementById('kmsRetour').value, carburant:document.getElementById('carburant').value, niveauCarbu:document.getElementById('niveauCarbu').value,
+        roueSecours:document.getElementById('roueSecours').checked ? 1 : 0, cric:document.getElementById('cric').checked ? 1 : 0, radio:document.getElementById('radio').checked ? 1 : 0, enjoliveur:document.getElementById('enjoliveur').checked ? 1 : 0, retroviseurs:document.getElementById('retroviseurs').checked ? 1 : 0, climatiseur:document.getElementById('climatiseur').checked ? 1 : 0, 
+        dateDepart:document.getElementById('dateDepart').value, heureDepart:document.getElementById('heureDepart').value, dateRetour:document.getElementById('dateRetour').value, heureRetour:document.getElementById('heureRetour').value, nbJours:document.getElementById('nbJours').value, prixJournalier:document.getElementById('prixJournalier').value, locationHT:document.getElementById('locationHT').value, assuranceRC:document.getElementById('assuranceRC').value, assurancePers:document.getElementById('assurancePers').value, tva:document.getElementById('tva').value, totalTTC:document.getElementById('totalTTC').value, lieu:document.getElementById('lieu').value, dateSignature:document.getElementById('dateSignature').value, dommages:document.getElementById('dommages').value ,
+           
+
+    }; 
+}
+
+async function apiCall(endpoint, options = {}) {
+    const defaultOptions = { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` } };
+    const response = await fetch(`${API_URL}${endpoint}`, { ...defaultOptions, ...options });
+    if (response.status === 401) { logout(); throw new Error('Session expirée'); }
+    if (!response.ok) { const error = await response.json(); throw new Error(error.message || 'Erreur serveur'); }
+    return response.json();
+}
+
+async function login() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    errorDiv.innerText = 'Connexion en cours...';
+    try {
+        const response = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+        if (!response.ok) throw new Error('Identifiants incorrects');
+        const data = await response.json();
+        authToken = data.token;
+        currentUser = data.user;
+        sessionStorage.setItem('authToken', authToken);
+        sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('userName').innerText = currentUser.username;
+        document.getElementById('userRole').innerText = currentUser.role === 'admin' ? 'Administrateur' : currentUser.company;
+        await loadAllData();
+    } catch (error) { errorDiv.innerText = '❌ ' + error.message; }
+}
+
+async function loadAllData() {
+    try {
+        allContrats = await apiCall('/contrats');
+        allClients = await apiCall('/clients');
+        allVehicules = await apiCall('/vehicules');
+        populateCreatorFilter();
+        populateDetailYearFilter();
+        if (currentUser?.role === 'admin') loadDetailContrats();
+        filterContrats();
+        loadClientsList();
+        loadVehiculesList();
+        refreshClientSelectors();
+        refreshVehiculeSelector();
+        await loadStats();
+        updateTotalBadge();
+        populateYearFilter();
+        updateAdminDashboardVisibility();
+        if (currentUser?.role === 'admin') loadAdminDashboard();
+    } catch (error) { console.error('Erreur chargement:', error); showToast('Erreur chargement données'); }
+}
+
+async function loadStats() {
+    try {
+        const stats = await apiCall('/stats');
+        const statsDiv = document.getElementById('statsDashboard');
+        if (currentUser.role === 'admin') {
+            statsDiv.innerHTML = `<div class="stat-card"><h4>📋 Total contrats</h4><div class="number">${stats.totalContrats || 0}</div></div><div class="stat-card"><h4>💰 CA Total</h4><div class="number">${(stats.totalCA || 0).toFixed(2)} DT</div></div><div class="stat-card"><h4>📋 Mes contrats</h4><div class="number">${stats.myContrats || 0}</div></div><div class="stat-card"><h4>💰 Mon CA</h4><div class="number">${(stats.myCA || 0).toFixed(2)} DT</div></div>`;
+        } else {
+            statsDiv.innerHTML = `<div class="stat-card"><h4>📋 Mes contrats</h4><div class="number">${stats.myContrats || 0}</div></div><div class="stat-card"><h4>💰 Mon CA</h4><div class="number">${(stats.myCA || 0).toFixed(2)} DT</div></div><div class="stat-card"><h4>👥 Clients</h4><div class="number">${stats.clients || 0}</div></div><div class="stat-card"><h4>🚗 Véhicules</h4><div class="number">${stats.vehicules || 0}</div></div>`;
+        }
+    } catch (error) { console.error('Erreur stats:', error); }
+}
+
+function filterContrats() {
+    let search = document.getElementById('searchContrat')?.value.toLowerCase() || '';
+    let isAdmin = currentUser && currentUser.role === 'admin';
+    let contratsToShow = [...allContrats];
+    if (isAdmin) { let creatorFilter = document.getElementById('filterCreator')?.value || ''; if (creatorFilter) contratsToShow = contratsToShow.filter(c => c.createur === creatorFilter); document.getElementById('creatorFilterGroup').style.display = 'flex'; } 
+    else { document.getElementById('creatorFilterGroup').style.display = 'none'; }
+    contratsToShow = contratsToShow.filter(c => (c.numero_contrat || '').toLowerCase().includes(search));
+    let thead = document.getElementById('contratsHeader');
+    let tbody = document.getElementById('contratsBody');
+    if (isAdmin) thead.innerHTML = `<tr><th>N° Contrat</th><th>Créé par</th><th>Client</th><th>Véhicule</th><th>Date départ</th><th>Date retour</th><th>Total TTC</th><th>Actions</th></tr>`;
+    else thead.innerHTML = `<table><th>N° Contrat</th><th>Client</th><th>Véhicule</th><th>Date départ</th><th>Date retour</th><th>Total TTC</th><th>Actions</th></tr>`;
+    tbody.innerHTML = '';
+    if (contratsToShow.length === 0) { let row = tbody.insertRow(); let colSpan = isAdmin ? 8 : 7; let cell = row.insertCell(0); cell.colSpan = colSpan; cell.innerHTML = '<div style="text-align:center; padding:20px;">📭 Aucun contrat trouvé</div>'; }
+    else { contratsToShow.forEach(c => { let row = tbody.insertRow(); let colIndex = 0; row.insertCell(colIndex++).innerHTML = `<strong>${c.numero_contrat || 'N/A'}</strong>`; if (isAdmin) row.insertCell(colIndex++).innerHTML = c.createurNom || c.createur; row.insertCell(colIndex++).innerHTML = `${c.nom || ''} ${c.prenom || ''}`; row.insertCell(colIndex++).innerHTML = `${c.modele || '-'} (${c.immat || '-'})`; row.insertCell(colIndex++).innerHTML = c.dateDepart || '-'; row.insertCell(colIndex++).innerHTML = c.dateRetour || '-'; row.insertCell(colIndex++).innerHTML = `${parseFloat(c.totalTTC || 0).toFixed(2)} DT`; row.insertCell(colIndex++).innerHTML = `<button class="btn-small" onclick='viewContractPDF("${c.numero_contrat}")'>📄 PDF</button><button class="btn-small" onclick='openProlongModal("${c.numero_contrat}")'>⏱️ Prolonger</button><button class="btn-small" onclick='openChangeVehicleModal("${c.numero_contrat}")'>🚗 Changer véhicule</button><button class="btn-small" onclick='showHistoryModal("${c.numero_contrat}")'>📜 Historique</button><button class="btn-small btn-small-danger" onclick='deleteContract("${c.numero_contrat}")'>🗑️ Supprimer</button>`; }); }
+}
+
+function populateCreatorFilter() {
+    const filterSelect = document.getElementById('filterCreator');
+    if (!filterSelect) return;
+    const creatorsMap = new Map();
+    allContrats.forEach(contrat => { if (contrat.createur && !creatorsMap.has(contrat.createur)) creatorsMap.set(contrat.createur, contrat.createurNom || contrat.createur); });
+    filterSelect.innerHTML = '<option value="">🔽 Tous les créateurs</option>';
+    for (let [id, nom] of creatorsMap.entries()) { const option = document.createElement('option'); option.value = id; option.textContent = nom; filterSelect.appendChild(option); }
+}
+
+function updateTotalBadge() { let badge = document.getElementById('totalContratsBadge'); if (badge) badge.innerHTML = `${allContrats.length}`; }
+
+async function viewContractPDF(numero) { try { const contrat = await apiCall(`/contrats/${numero}`); generatePDFFromData(contrat, numero); } catch (error) { showToast("Contrat introuvable"); } }
+
+function showHistoryModal(numero) {
+    const contrat = allContrats.find(c => c.numero_contrat === numero);
+    if (!contrat) return;
+    let historyHtml = `<div style="max-height: 400px; overflow-y: auto;"><p><strong>📄 Contrat original :</strong></p><p>📅 Période initiale : ${contrat.dateDepart} → ${contrat.dateRetour}</p><p>🚗 Véhicule initial : ${contrat.modele} - ${contrat.immat}</p><p>🔧 Kilométrage retour initial : ${contrat.kmsRetour} km</p>`;
+    let historique = getHistoriqueContrat(numero);
+    if (historique.length) { historyHtml += `<hr><p><strong>📜 Historique des modifications :</strong></p>`; historique.forEach((entry, idx) => { historyHtml += `<p><strong>${idx+1}. ${entry.action === 'prolong' ? '⏱️ Prolongation' : '🚗 Changement véhicule'}</strong> (${new Date(entry.date).toLocaleString()})</p>`; if (entry.action === 'prolong') historyHtml += `<p>   Ancienne date retour : ${entry.details.ancienne_date_retour} ${entry.details.ancienne_heure_retour}<br>   Nouvelle date retour : ${entry.details.nouvelle_date_retour} ${entry.details.nouvelle_heure_retour}<br>   Kilométrage : ${entry.details.anciens_kms_retour} → ${entry.details.nouveaux_kms_retour} km</p>`; else historyHtml += `<p>   Ancien véhicule : ${entry.details.ancien_modele} - ${entry.details.ancienne_immat}<br>   Nouveau véhicule : ${entry.details.nouveau_modele} - ${entry.details.nouvelle_immat}<br>   Kilométrage : ${entry.details.anciens_kms} → ${entry.details.nouveaux_kms} km</p>`; }); }
+    else historyHtml += `<p><em>Aucune modification enregistrée.</em></p>`;
+    historyHtml += `</div>`;
+    document.getElementById('modalTitle').innerHTML = '📜 Historique complet du contrat';
+    document.getElementById('modalBody').innerHTML = historyHtml;
+    document.getElementById('actionModal').style.display = 'flex';
+    currentActionContrat = null;
+}
+
+function getHistoriqueContrat(numeroContrat) { const stored = sessionStorage.getItem(`historique_${numeroContrat}`); return stored ? JSON.parse(stored) : []; }
+function saveHistoriqueContrat(numeroContrat, historique) { sessionStorage.setItem(`historique_${numeroContrat}`, JSON.stringify(historique)); }
+
+async function deleteContract(numero) { if (confirm(`Supprimer définitivement le contrat ${numero} ?`)) { try { await apiCall(`/contrats/${numero}`, { method: 'DELETE' }); showToast(`Contrat ${numero} supprimé`); await loadAllData(); } catch (error) { showToast('Erreur lors de la suppression'); } } }
+
+function openProlongModal(numero) {
+    const contrat = allContrats.find(c => c.numero_contrat === numero);
+    if (!contrat) return;
+    currentActionContrat = { contrat, action: 'prolong' };
+    const oldDateRetour = contrat.dateRetour || '';
+    const oldHeureRetour = contrat.heureRetour || '12:00';
+    const oldPrix = contrat.prixJournalier || 80;
+    const oldKms = contrat.kmsRetour || 0;
+    const dateDepart = contrat.dateDepart;
+    const heureDepart = contrat.heureDepart || '12:00';
+    const updatePreview = () => {
+        const newDateRetour = document.getElementById('newDateRetour').value;
+        const newHeure = document.getElementById('newHeureRetour').value;
+        const newPrix = parseFloat(document.getElementById('newPrixJournalier').value) || 0;
+        if (newDateRetour && dateDepart) {
+            const start = new Date(`${dateDepart}T${heureDepart}`);
+            const end = new Date(`${newDateRetour}T${newHeure}`);
+            let jours = Math.ceil((end - start) / (86400000));
+            if (jours < 1) jours = 1;
+            const montantBrut = newPrix * jours;
+            const tva = 19 * jours;
+            const timbres = 1;
+            const totalTTC = montantBrut + timbres;
+            document.getElementById('previewTotal').innerHTML = `💰 Total estimé : ${totalTTC.toFixed(2)} DT<br>📅 Jours : ${jours}<br>TVA : ${tva.toFixed(2)} DT`;
+        } else { document.getElementById('previewTotal').innerHTML = '💰 Total estimé : -- DT'; }
+    };
+    document.getElementById('modalTitle').innerHTML = '⏱️ Prolonger le contrat';
+    document.getElementById('modalBody').innerHTML = `<div class="form-group"><label>📅 Nouvelle date de retour</label><input type="date" id="newDateRetour" value="${oldDateRetour}" onchange="updatePreview()"></div><div class="form-group"><label>⏰ Nouvelle heure</label><input type="time" id="newHeureRetour" value="${oldHeureRetour}" onchange="updatePreview()"></div><div class="form-group"><label>💰 Nouveau prix journalier (TTC)</label><input type="number" id="newPrixJournalier" value="${oldPrix}" onchange="updatePreview()"></div><div class="form-group"><label>🔧 Kilométrage retour</label><input type="number" id="newKmsRetour" value="${oldKms}"></div><div id="previewTotal" style="background:#f0f0f0; padding:10px; border-radius:8px; margin-top:10px; font-weight:bold;">💰 Total estimé : -- DT</div>`;
+    window.updatePreview = updatePreview;
+    document.getElementById('actionModal').style.display = 'flex';
+    updatePreview();
+}
+
+function openChangeVehicleModal(numero) {
+    const contrat = allContrats.find(c => c.numero_contrat === numero);
+    if (contrat) {
+        currentActionContrat = { contrat, action: 'changeVehicle' };
+        document.getElementById('modalTitle').innerHTML = '🚗 Changer le véhicule (ancien conservé)';
+        document.getElementById('modalBody').innerHTML = `<div class="form-group"><label>Nouveau modèle</label><input type="text" id="newModele" value="${contrat.modele || ''}"></div><div class="form-group"><label>Nouvelle immatriculation</label><input type="text" id="newImmat" value="${contrat.immat || ''}"></div><div class="form-group"><label>Kilométrage retour (après changement)</label><input type="number" id="newKmsRetourChgt" value="${contrat.kmsRetour || 0}"></div>`;
+        document.getElementById('actionModal').style.display = 'flex';
+    }
+}
+
+async function executeModalAction() {
+    if (!currentActionContrat) return;
+    let { contrat, action } = currentActionContrat;
+    let updateData = {};
+    let historiqueEntry = { date: new Date().toISOString(), action: action };
+    if (action === 'prolong') {
+        let newDate = document.getElementById('newDateRetour').value;
+        let newHeure = document.getElementById('newHeureRetour').value;
+        let newPrix = parseFloat(document.getElementById('newPrixJournalier').value) || contrat.prixJournalier;
+        let newKms = parseInt(document.getElementById('newKmsRetour').value) || contrat.kmsRetour;
+        const dateDepart = contrat.dateDepart;
+        const heureDepart = contrat.heureDepart || '12:00';
+        let start = new Date(`${dateDepart}T${heureDepart}`);
+        let end = new Date(`${newDate}T${newHeure}`);
+        let nbJours = Math.ceil((end - start) / 86400000);
+        if (nbJours < 1) nbJours = 1;
+        let montantBrut = newPrix * nbJours;
+        let tva = 19 * nbJours;
+        let timbres = 1;
+        let totalTTC = montantBrut + timbres;
+        let locationHT = montantBrut - tva;
+        if (locationHT < 0) locationHT = 0;
+        historiqueEntry.details = { ancienne_date_retour: contrat.dateRetour, ancienne_heure_retour: contrat.heureRetour, anciens_kms_retour: contrat.kmsRetour, ancien_prix: contrat.prixJournalier, nouvelle_date_retour: newDate, nouvelle_heure_retour: newHeure, nouveaux_kms_retour: newKms, nouveau_prix: newPrix, nouveau_nb_jours: nbJours, nouveau_total: totalTTC };
+        updateData = { dateRetour: newDate, heureRetour: newHeure, kmsRetour: newKms, prixJournalier: newPrix, nbJours: nbJours, locationHT: locationHT.toFixed(2), tva: tva.toFixed(2), totalTTC: totalTTC.toFixed(2) };
+    } else if (action === 'changeVehicle') {
+        let newModele = document.getElementById('newModele').value;
+        let newImmat = document.getElementById('newImmat').value;
+        let newKms = parseInt(document.getElementById('newKmsRetourChgt').value) || contrat.kmsRetour;
+        historiqueEntry.details = { ancien_modele: contrat.modele, ancienne_immat: contrat.immat, anciens_kms: contrat.kmsRetour, nouveau_modele: newModele, nouvelle_immat: newImmat, nouveaux_kms: newKms };
+        updateData = { modele: newModele, immat: newImmat, kmsRetour: newKms };
+    }
+    let historique = getHistoriqueContrat(contrat.numero_contrat);
+    historique.push(historiqueEntry);
+    saveHistoriqueContrat(contrat.numero_contrat, historique);
+    try { await apiCall(`/contrats/${contrat.numero_contrat}`, { method: 'PUT', body: JSON.stringify(updateData) }); showToast(`Contrat ${contrat.numero_contrat} modifié`); await loadAllData(); closeModal(); } 
+    catch (error) { console.error('Erreur:', error); showToast('Erreur: ' + error.message); }
+}
+
+function closeModal() { document.getElementById('actionModal').style.display = 'none'; currentActionContrat = null; }
+
+// Fonction principale de génération PDF - Signature corrigée
+function generatePDFFromData(data, numero) {
+      const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '-';
+    const formatDateTime = (d, t) => {
+        if (!d) return '-';
+        const date = new Date(d).toLocaleDateString('fr-FR');
+        return `${date} ${t || ''}`;
+    };
+    
+    const signatureDate = data.dateSignature ? new Date(data.dateSignature).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
+  
+
+    let nj = parseInt(data.nbJours) || 1;
+    let kd = parseInt(data.kmsDepart) || 0;
+    let kr = parseInt(data.kmsRetour) || 0;
+    let kmParcourus = kr - kd;
+    let kmLimite = 350 * nj;
+    let penalty = kmParcourus > kmLimite ? ((kmParcourus - kmLimite) * 0.5).toFixed(2) : 0;
+    
+    let montantBrut = (parseFloat(data.prixJournalier) || 0) * nj;
+    let tva = 19 * nj;
+    let timbres = 1;
+   let taxeJournaliere = 2 * nj;      
+let totalTTC = montantBrut + timbres + taxeJournaliere;
+    
+    // Style compact - sans espace
+    const compactCardLayout = {
+        hLineWidth: (i, node) => 0,
+        vLineWidth: (i, node) => 0,
+        paddingLeft: (i, node) => 4,
+        paddingRight: (i, node) => 4,
+        paddingTop: (i, node) => 2,
+        paddingBottom: (i, node) => 2
+    };
+    
+    // Fonction pour créer une card compacte
+    function makeCompactCard(titleFr, titleAr, items) {
+        const bodyRows = items.map(item => [
+            { text: item.fr, alignment: 'left', fontSize: 7, bold: false },
+            { text: item.value, alignment: 'center', fontSize: 7, bold: true, color: '#000000' },
+            { text: item.ar, font: 'NotoNaskhArabic', alignment: 'right', fontSize: 7, bold: false }
+        ]);
+        
+        return {
+            table: {
+                widths: ['33%', '34%', '33%'],
+                headerRows: 1,
+                body: [
+                    [
+                        { text: titleFr, alignment: 'left', fontSize: 8, bold: true, color: '#FFFFFF', fillColor: '##FFFFFF' },
+                        { text: '', fillColor: '#000000' },
+                        { text: titleAr, font: 'NotoNaskhArabic', alignment: 'right', fontSize: 8, bold: true, color: '#FFFFFF', fillColor: '##FFFFFF' }
+                    ],
+                    ...bodyRows
+                ]
+            },
+            layout: compactCardLayout,
+            margin: [0, 0, 0, 0]
+        };
+    }
+    // Fonction pour créer une card avec image
+     // Fonction pour créer une card véhicule avec image
+    function makeVehicleImageCard(titleFr, titleAr, imageBase64) {
+        return {
+            table: {
+                widths: ['*'],
+                body: [
+                    [
+                        { text: titleFr, alignment: 'center', fontSize: 9, bold: true, color: '#FFFFFF', fillColor: '#000000' }
+                    ],
+                    [
+                        { stack: [
+                            { text: titleAr, font: 'NotoNaskhArabic', alignment: 'center', fontSize: 9, bold: true, color: '#000000', margin: [0, 0, 0, 5] },
+                            { image: imageBase64, width: 80, alignment: 'center' }
+                        ] }
+                    ]
+                ]
+            },
+            layout: compactCardLayout,
+            margin: [0, 0, 0, 0]
+        };
+    }
+    
+    // Données compactes
+    const locataireItems = [
+        { fr: 'Nom complet', ar: ' الكامل الاسم', value: `${data.nom || ''} ${data.prenom || ''}` },
+        { fr: 'Date naissance', ar: '   الميلاد تاريخ ', value: formatDate(data.dateNaiss) },
+        { fr: 'Nationalité', ar: 'الجنسية', value: data.nationalite || '-' },
+        { fr: 'CIN/Passeport', ar: ' تعريف  بطاقة', value: data.cin || '-' },
+        { fr: 'Délivré le', ar: ' التسليم  تاريخ', value: formatDate(data.cinDate) },
+        { fr: 'Permis', ar: ' السياقة   رخصة', value: data.permis || '-' },
+        { fr: 'Délivré le', ar: ' التسليم  تاريخ', value: formatDate(data.permisDate) },
+        { fr: 'Adresse', ar: 'العنوان', value: data.adresse || '-' },
+        { fr: 'Téléphone', ar: 'الهاتف', value: data.tel || '-' },
+        { fr: 'Date entrée', ar: ' الدخول  تاريخ', value: formatDate(data.dateEntree) }
+    ];
+    
+    const conducteurItems = [
+        { fr: 'Nom complet', ar: ' الكامل  الاسم', value: `${data.cond2_nom || ''} ${data.cond2_prenom || ''}` },
+        { fr: 'Date naissance', ar: '   الميلاد  تاريخ ', value: formatDate(data.cond2_naissance) },
+        { fr: 'Nationalité', ar: 'الجنسية', value: data.cond2_nationalite || '-' },
+        { fr: 'CIN/Passeport', ar: ' تعريف  بطاقة', value: data.cond2_cin || '-' },
+        { fr: 'Délivré le', ar: ' التسليم  تاريخ', value: formatDate(data.cond2_cinDate) },
+        { fr: 'Permis', ar: ' السياقة  رخصة', value: data.cond2_permis || '-' },
+        { fr: 'Délivré le', ar: ' التسليم  تاريخ', value: formatDate(data.cond2_permisDate) }
+    ];
+    
+    const vehiculeItems = [
+        { fr: 'Modèle', ar: 'الموديل', value: data.modele || '-' },
+        { fr: 'Immatriculation', ar: 'الترقيم', value: data.immat || '-' },
+        { fr: 'Carburant', ar: 'الوقود', value: data.carburant || '-' },
+        { fr: 'Niveau départ', ar: ' الوقود  مستوى', value: data.niveauCarbu || '-' },
+        { fr: 'Km départ', ar: ' إنطلاق  كلم', value: `${data.kmsDepart || 0} km` },
+        { fr: 'Km retour', ar: ' عودة  كلم', value: `${data.kmsRetour || 0} km` },
+        { fr: 'Km parcourus', ar: ' المقطوعة  كلم', value: `${kmParcourus} km` },
+        { fr: 'Limite', ar: ' الأقصى  الحد', value: '350 km/jour' }
+    ];
+    
+    // Équipements en ligne
+    const equipementValues = [
+        `Roue secours ${data.roueSecours ? '✓' : '□'}`,
+        `Cric ${data.cric ? '✓' : '□'}`,
+        `Radio ${data.radio ? '✓' : '□'}`,
+        `Enjoliveur ${data.enjoliveur ? '✓' : '□'}`,
+        `Rétroviseurs ${data.retroviseurs ? '✓' : '□'}`,
+        `Climatiseur ${data.climatiseur ? '✓' : '□'}`
+    ];
+    
+//const equipementArValues = [
+     //  `العجلة الاحتياطية ${data.roueSecours ? '✓' : '□'}`,
+       // `الرافعة ${data.cric ? '✓' : '□'}`,
+      //  `الراديو ${data.radio ? '✓' : '□'}`,
+        //`غطاء العجلة ${data.enjoliveur ? '✓' : '□'}`,
+      // `المرايا ${data.retroviseurs ? '✓' : '□'}`,
+      //  `المكيف ${data.climatiseur ? '✓' : '□'}`
+   // ];
+    
+    const equipementItems = [
+        { fr: equipementValues[0], value: '' },
+        { fr: equipementValues[1],  value: '' },
+        { fr: equipementValues[2],  value: '' },
+        { fr: equipementValues[3], value: '' },
+        { fr: equipementValues[4],  value: '' },
+        { fr: equipementValues[5],  value: '' }
+    ];
+    
+    const locationItems = [
+        { fr: 'Date Début', ar: ' الإنطلاق  تاريخ', value: formatDateTime(data.dateDepart, data.heureDepart) },
+        { fr: 'Date Fin', ar: ' العودة  تاريخ', value: formatDateTime(data.dateRetour, data.heureRetour) },
+        { fr: 'Durée/jours', ar: ' الأيام', value: `${nj} j` },
+        { fr: 'Prix journalier TTC', ar: ' اليومي  السعر', value: `${data.prixJournalier || 0} DT` },
+        { fr: 'Montant TTC', ar: 'المبلغ', value: `${montantBrut.toFixed(2)} DT` },
+        { fr: 'TVA (19 DT/j)', ar: 'الضريبة', value: `${tva.toFixed(2)} DT` },
+        { fr: 'Timbres', ar: 'الطوابع', value: '1 DT' },
+      { fr: 'Taxe journalière', ar: ' يومي  معلوم', value: `${taxeJournaliere} DT` },
+
+        { fr: 'TOTAL TTC', ar: 'المجموع', value: `${totalTTC.toFixed(2)} DT` }
+    ];
+    
+    // En-tête compact
+    const headerContent = {
+        columns: [
+           
+            {
+                width: 100,
+                
+                stack: [
+                    { text: 'ADEM RENT CAR', fontSize: 12, bold: true, color: '#000000' },
+                     { text: '   السيارات كراء   آدم ', font: 'NotoNaskhArabic', fontSize: 9, bold: true, color: '#000000', margin: [0, 3, 0, 0] },
+                      { image: important1, width: 100, alignment: 'right', margin: [0,10,0,5] }
+                ],
+                alignment: 'right'
+            },
+            {
+                width: '*',
+                stack: [
+                   {image:LOGO_BASE64 ,width:50, alignment:'center', margin: [0,0,0,5]},
+                    { text: 'CONTRAT DE LOCATION', fontSize: 12, bold: true, color: '#000000', alignment: 'center' },
+                    { text: ' كراء عقد', font: 'NotoNaskhArabic', fontSize: 10, bold: true, color: '#000000', alignment: 'center', margin: [0, 2, 0, 0] },
+
+                    { text: `N° ${numero}`, fontSize: 9, bold: true, color: '#000000', alignment: 'center' },
+                     
+
+                ]
+            },
+            {
+                width: 130,
+                stack: [
+
+                    { text: 'Location de voiture', fontSize: 7, color: '#000000', alignment: 'left' },
+                    { text: 'Rue Ibn Rochd, Menzel Bourguiba', fontSize: 6, color: '#000000', alignment: 'left' },
+                    { text: 'Tél:97.211.324', fontSize: 7, color: '#000000', alignment: 'left', bold: true },
+                    { text: 'MF: 1079170/D-000-A-M', fontSize: 5, color: '#000000', alignment: 'left' },
+  { image: important, width: 100, alignment: 'left', margin: [0,10,0,5] }
+                ]
+            }
+        ],
+        margin: [0, 0, 0, 5],
+        columnGap: 5
+    };
+    
+    const separator = { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#000000' }], margin: [0, 0, 0, 5] };
+    
+    // Construction du contenu
+    const content = [
+        headerContent,
+        separator,
+        // Ligne 1: LOCATAIRE + SECOND CONDUCTEUR
+        {
+            columns: [
+                { width: '50%', stack: [makeCompactCard('LOCATAIRE', 'المستأجر', locataireItems)], margin: [0, 0, 3, 0] },
+                { width: '50%', stack: [makeCompactCard('DEUXIEME  CONDUCTEUR', 'السائق الثاني', conducteurItems)], margin: [3, 0, 0, 0] }
+            ],
+            margin: [0, 0, 0, 0]
+        },
+        // Ligne 2: VEHICULE + EQUIPEMENTS
+        {
+            columns: [
+                { width: '50%', stack: [makeCompactCard('VEHICULE', 'السيارة', vehiculeItems)], margin: [0, 0, 3, 0] },
+                { width: '50%', stack: [makeCompactCard('EQUIPEMENTS', 'التجهيزات', equipementItems)], margin: [3, 0, 0, 0] }
+            ],
+            margin: [0, 0, 0, 0]
+        },
+        // DETAILS DE LA LOCATION
+
+        makeCompactCard('DETAILS DE LA LOCATION', ' الكراء تفاصيل', locationItems),
+                // Carte VEHICULE avec image - pleine largeur comme DETAILS DE LA LOCATION
+        // Carte VEHICULE avec image - comme un carreau
+        {
+            columns: [
+                { width: '50%', stack: [] },
+                { width: '50%', stack: [makeVehicleImageCard('VEHICULE', 'السيارة', IMAGE_VOITURE_BASE64)], margin: [5, 0, 0, 0] }
+            ],
+            margin: [0, 5, 0, 0]
+        },
+        // Pénalité si applicable
+        ...(penalty > 0 ? [{ 
+            columns: [
+                { width: '50%', text: `Pénalité dépassement km: ${penalty} DT`, alignment: 'left', fontSize: 7, color: '#000000', margin: [4, 2, 0, 2] },
+                { width: '50%', text: `غرامة تجاوز الكيلومترات: ${penalty} دت`, font: 'NotoNaskhArabic', alignment: 'right', fontSize: 7, color: '#000000', margin: [0, 2, 4, 2] }
+            ]
+        }] : []),
+        
+        // Dommages si applicable
+        ...(data.dommages ? [{ 
+            columns: [
+                { width: '50%', text: `Observations: ${data.dommages}`, alignment: 'left', fontSize: 6, italics: true, color: '#000000', margin: [4, 0, 0, 2] },
+                { width: '50%', text: `ملاحظات: ${data.dommages}`, font: 'NotoNaskhArabic', alignment: 'right', fontSize: 6, italics: true, color: '#000000', margin: [0, 0, 4, 2] }
+            ]
+        }] : []),
+        
+        // Signatures - Version corrigée avec نص الشركة à droite et لصالح à gauche
+        { text: '', margin: [0, 5, 0, 0] },
+        {
+            columns: [
+                { 
+                    width: '50%', 
+                    alignment: 'center', 
+                    stack: [
+                    { text: 'Signature du client', fontSize: 7, bold: true, color: '#000000', margin: [0, 0, 0, 4] } ]
+                      
+                       
+                },
+                { 
+                    width: '50%', 
+                    alignment: 'center', 
+                    stack: [
+                        { text: 'Pour ADEM RENT CAR', fontSize: 7, bold: true, color: '#000000', margin: [0, 0, 0, 4] },
+                       
+                        { text: 'Cachet et signature', fontSize: 6, color: '#000000' }
+                    ] 
+                }
+            ]
+        },
+     
+        
+        // Lieu et date
+        { text: `Fait à ${data.lieu || 'Menzel Bourguiba'}, le ${signatureDate}`, alignment: 'center', fontSize: 7, margin: [0, 8, 0, 0] }
+    ];
+    
+    const docDefinition = {
+        pageSize: 'A4',
+        pageMargins: [20, 20, 20, 20],
+        defaultStyle: { font: 'Roboto', fontSize: 7, color: '#000000' },
+        content: content,
+        info: {
+            title: `Contrat_Location_${numero}`,
+        author:'ADEM RENT CAR',
+            author :'  ',
+            subject: 'Contrat de location de voiture'
+        }
+    };
+    
+    pdfMake.createPdf(docDefinition).download(`Contrat_ADEM_${numero}.pdf`);
+}
+
+async function generatePDF() {
+    let data = collectData();
+    let dateDepart = new Date(data.dateDepart);
+    let dateRetour = new Date(data.dateRetour);
+    if (dateDepart > dateRetour) { showToast('❌ La date de départ ne peut pas être supérieure à la date de retour.'); return; }
+    if (!data.nom || !data.prenom || !data.modele || !data.immat) { showToast('Veuillez remplir les informations du client et du véhicule'); return; }
+    try {
+        const contrat = await apiCall('/contrats', { method: 'POST', body: JSON.stringify(data) });
+        generatePDFFromData(contrat, contrat.numero_contrat);
+        showToast(`✓ Contrat ${contrat.numero_contrat} généré`);
+        await loadAllData();
+        clearForm();
+    } catch (error) { showToast('Erreur: ' + error.message); }
+}
+
+function clearForm() {
+    document.querySelectorAll('#tabFormulaire input').forEach(el => { if (el.type === 'checkbox') el.checked = true; else if (el.type !== 'button' && el.id !== 'timbres') el.value = ''; });
+    document.getElementById('prixJournalier').value = 80;
+    document.getElementById('assuranceRC').value = 15;
+    document.getElementById('assurancePers').value = 10;
+    document.getElementById('kmsDepart').value = 0;
+    document.getElementById('kmsRetour').value = 0;
+    
+    calculerTotal();
+}
+
+function refreshClientSelectors() {
+    let selectClient = document.getElementById('selectClient');
+    let selectCond2 = document.getElementById('selectConducteur2');
+    if (selectClient) { selectClient.innerHTML = '<option value="">-- Charger un client existant --</option>'; allClients.forEach(c => { selectClient.innerHTML += `<option value="${c.id}">${c.nom} ${c.prenom} - ${c.cin}</option>`; }); }
+    if (selectCond2) { selectCond2.innerHTML = '<option value="">-- Charger un conducteur existant --</option>'; allClients.forEach(c => { selectCond2.innerHTML += `<option value="${c.id}">${c.nom} ${c.prenom} - ${c.cin}</option>`; }); }
+}
+
+function loadSelectedClient() {
+    let select = document.getElementById('selectClient');
+    let id = select.value;
+    if (!id) return;
+    let client = allClients.find(c => c.id == id);
+    if (client) {
+        document.getElementById('nom').value = client.nom || '';
+        document.getElementById('prenom').value = client.prenom || '';
+        document.getElementById('dateNaiss').value = client.dateNaiss || '';
+        document.getElementById('nationalite').value = client.nationalite || '';
+        document.getElementById('cin').value = client.cin || '';
+        document.getElementById('cinDate').value = client.cinDate || '';
+        document.getElementById('permis').value = client.permis || '';
+        document.getElementById('permisDate').value = client.permisDate || '';
+        document.getElementById('adresse').value = client.adresse || '';
+        document.getElementById('tel').value = client.tel || '';
+        document.getElementById('dateEntree').value = client.dateEntree || '';
+        showToast(`✓ Client ${client.nom} chargé`);
+    }
+}
+
+function loadSelectedConducteur2() {
+    let select = document.getElementById('selectConducteur2');
+    let id = select.value;
+    if (!id) return;
+    let client = allClients.find(c => c.id == id);
+    if (client) {
+        document.getElementById('cond2_nom').value = client.nom || '';
+        document.getElementById('cond2_prenom').value = client.prenom || '';
+        document.getElementById('cond2_naissance').value = client.dateNaiss || '';
+        document.getElementById('cond2_nationalite').value = client.nationalite || '';
+        document.getElementById('cond2_cin').value = client.cin || '';
+        document.getElementById('cond2_cinDate').value = client.cinDate || '';
+        document.getElementById('cond2_permis').value = client.permis || '';
+        document.getElementById('cond2_permisDate').value = client.permisDate || '';
+        document.getElementById('cond2_adresse').value = client.adresse || '';
+        document.getElementById('cond2_tel').value = client.tel || '';
+        document.getElementById('cond2_dateEntree').value = client.dateEntree || '';
+        showToast(`✓ Conducteur ${client.nom} chargé`);
+    }
+}
+
+function refreshVehiculeSelector() {
+    let select = document.getElementById('selectVehicule');
+    if (select) { select.innerHTML = '<option value="">-- Charger un véhicule existant --</option>'; allVehicules.forEach(v => { select.innerHTML += `<option value="${v.id}">${v.modele} - ${v.immat}</option>`; }); }
+}
+
+function loadSelectedVehicule() {
+    let select = document.getElementById('selectVehicule');
+    let id = select.value;
+    if (!id) return;
+    let v = allVehicules.find(v => v.id == id);
+    if (v) { document.getElementById('modele').value = v.modele || ''; document.getElementById('immat').value = v.immat || ''; showToast(`✓ Véhicule ${v.immat} chargé`); }
+}
+
+function loadClientsList() {
+    let tbody = document.getElementById('clientsBody');
+    if (tbody) {
+        tbody.innerHTML = '';
+        if (allClients.length === 0) { let row = tbody.insertRow(); row.insertCell(0).colSpan = 5; row.innerHTML = '<td colspan="5"><div style="padding:20px;text-align:center;">👥 Aucun client</div></tr>'; }
+        else { allClients.forEach(c => { let row = tbody.insertRow(); row.insertCell(0).innerHTML = '👤 Locataire'; row.insertCell(1).innerHTML = `${c.nom || ''} ${c.prenom || ''}`; row.insertCell(2).innerHTML = c.tel || '-'; row.insertCell(3).innerHTML = c.cin || '-'; row.insertCell(4).innerHTML = `<button class="btn-small" onclick='useClient(${c.id})'>✏️ Utiliser</button>`; }); }
+    }
+}
+
+function useClient(id) {
+    let c = allClients.find(c => c.id == id);
+    if (c) {
+        document.getElementById('nom').value = c.nom || '';
+        document.getElementById('prenom').value = c.prenom || '';
+        document.getElementById('tel').value = c.tel || '';
+        document.getElementById('cin').value = c.cin || '';
+        document.getElementById('adresse').value = c.adresse || '';
+        document.getElementById('dateNaiss').value = c.dateNaiss || '';
+        showTab('formulaire');
+        showToast(`✓ Client ${c.nom} chargé`);
+    }
+}
+
+function loadVehiculesList() {
+    let tbody = document.getElementById('vehiculesBody');
+    if (tbody) {
+        tbody.innerHTML = '';
+        if (allVehicules.length === 0) { let row = tbody.insertRow(); row.insertCell(0).colSpan = 3; row.innerHTML = '<td colspan="3"><div style="padding:20px;text-align:center;">🚗 Aucun véhicule</div></tr>'; }
+        else { allVehicules.forEach(v => { let row = tbody.insertRow(); row.insertCell(0).innerHTML = v.modele || '-'; row.insertCell(1).innerHTML = v.immat || '-'; row.insertCell(2).innerHTML = `<button class="btn-small" onclick='useVehicle(${v.id})'>🚗 Utiliser</button>`; }); }
+    }
+}
+
+function useVehicle(id) {
+    let v = allVehicules.find(v => v.id == id);
+    if (v) { document.getElementById('modele').value = v.modele || ''; document.getElementById('immat').value = v.immat || ''; showTab('formulaire'); showToast(`✓ Véhicule ${v.immat} chargé`); }
+}
+
+function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    if (tab === 'formulaire') { document.getElementById('tabFormulaire').classList.add('active'); document.querySelector('.tabs button:first-child').classList.add('active'); }
+    else if (tab === 'contrats') { document.getElementById('tabContrats').classList.add('active'); document.querySelector('.tabs button:nth-child(2)').classList.add('active'); filterContrats(); }
+    else if (tab === 'clients') { document.getElementById('tabClients').classList.add('active'); document.querySelector('.tabs button:nth-child(3)').classList.add('active'); loadClientsList(); }
+    else if (tab === 'vehicules') { document.getElementById('tabVehicules').classList.add('active'); document.querySelector('.tabs button:nth-child(4)').classList.add('active'); loadVehiculesList(); }
+    else if (tab === 'dashboardAdmin') { document.getElementById('tabDashboardAdmin').classList.add('active'); document.querySelector('#tabAdminBtn').classList.add('active'); loadAdminDashboard(); }
+}
+
+function logout() { currentUser = null; authToken = null; sessionStorage.removeItem('authToken'); sessionStorage.removeItem('currentUser'); document.getElementById('dashboard').style.display = 'none'; document.getElementById('loginModal').style.display = 'flex'; document.getElementById('loginUsername').value = 'admin'; document.getElementById('loginPassword').value = 'admin123'; document.getElementById('loginError').innerText = ''; }
+
+function showToast(msg) { let toast = document.createElement('div'); toast.className = 'toast'; toast.textContent = msg; document.body.appendChild(toast); setTimeout(() => toast.remove(), 2500); }
+
+async function checkSession() {
+    let savedToken = sessionStorage.getItem('authToken');
+    let savedUser = sessionStorage.getItem('currentUser');
+    if (savedToken && savedUser) {
+        authToken = savedToken;
+        currentUser = JSON.parse(savedUser);
+        try { await apiCall('/contrats'); document.getElementById('loginModal').style.display = 'none'; document.getElementById('dashboard').style.display = 'block'; document.getElementById('userName').innerText = currentUser.username; document.getElementById('userRole').innerText = currentUser.role === 'admin' ? 'Administrateur' : currentUser.company; await loadAllData(); } 
+        catch (error) { logout(); }
+    }
+}
+
+loadTheme();
+checkSession();
+</script>
+</body>
+</html>
