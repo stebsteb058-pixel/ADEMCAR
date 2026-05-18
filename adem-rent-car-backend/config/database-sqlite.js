@@ -1,7 +1,7 @@
 // ========== NOUVEAU CODE CORRIGÉ POUR TURSO ==========
 
 const bcrypt = require('bcryptjs');
-import { createClient } from '@libsql/client';
+const { createClient } = require('@libsql/client');
 
 // ⚠️ CORRECTION 1 : Le token doit être dans les variables d'environnement, pas en dur
 const db = createClient({
