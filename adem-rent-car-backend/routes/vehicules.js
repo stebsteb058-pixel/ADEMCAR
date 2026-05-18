@@ -3,77 +3,85 @@ const db = require('../config/database-sqlite');
 const { protect } = require('../middleware/auth');
 const router = express.Router();
 
-router.use(protect);
-
-// GET tous les véhicules
-router.get('/', (req, res) => {
-    // Vérifier si la table existe, sinon la créer
-    db.run(`CREATE TABLE IF NOT EXISTS vehicules (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        createur TEXT,
-        modele TEXT,
-        immat TEXT UNIQUE,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`, (err) => {
-        if (err) {
-            console.error('Erreur création table vehicules:', err);
-            return res.status(500).json({ message: 'Erreur base de données' });
-        }
-        // Requête sécurisée
-        db.all('SELECT * FROM vehicules WHERE createur = ? ORDER BY createdAt DESC', [req.user.username], (err2, rows) => {
-            if (err2) {
-                console.error('Erreur SELECT vehicules:', err2);
-                return res.status(500).json({ message: 'Erreur récupération véhicules' });
-            }
-            res.json(rows || []);
+// ========== STATISTIQUES DASHBOARD (CORRIGÉ) ==========
+router.get('/', protect, async (req, res) => {
+    try {
+        // Vérifier que la table contrats existe
+        const tableCheck = await db.execute({
+            sql: "SELECT name FROM sqlite_master WHERE type='table' AND name='contrats'"
         });
-    });
-});
-
-// POST création
-router.post('/', (req, res) => {
-    const { modele, immat } = req.body;
-    if (!modele || !immat) {
-        return res.status(400).json({ message: 'Modèle et immatriculation requis' });
-    }
-    db.run(`INSERT INTO vehicules (createur, modele, immat) VALUES (?, ?, ?)`,
-        [req.user.username, modele, immat],
-        function(err) {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ message: 'Erreur insertion véhicule' });
-            }
-            res.json({ id: this.lastID, modele, immat });
-        });
-});
-
-router.put('/:immat', protect, (req, res) => {
-    const { modele } = req.body;
-    const immat = req.params.immat;
-    if (!modele || !immat) return res.status(400).json({ message: 'Modèle et immatriculation requis' });
-    
-    db.get('SELECT * FROM vehicules WHERE immat = ? AND createur = ?', [immat, req.user.username], (err, existing) => {
-        if (err) return res.status(500).json({ message: err.message });
-        if (existing) {
-            db.run(`UPDATE vehicules SET modele = ? WHERE immat = ? AND createur = ?`, [modele, immat, req.user.username], (err2) => {
-                if (err2) return res.status(500).json({ message: err2.message });
-                res.json({ message: 'Véhicule mis à jour' });
+        
+        const tableExists = tableCheck.rows.length > 0;
+        
+        if (!tableExists) {
+            return res.json({ 
+                totalContrats: 0, 
+                totalCA: 0, 
+                myContrats: 0, 
+                myCA: 0, 
+                clients: 0, 
+                vehicules: 0 
             });
+        }
+        
+        if (req.user.role === 'admin') {
+            // Total contrats (tous les utilisateurs)
+            const allResult = await db.execute('SELECT COUNT(*) as total, SUM(totalTTC) as ca FROM contrats');
+            const totalContrats = allResult.rows[0]?.total || 0;
+            const totalCA = allResult.rows[0]?.ca || 0;
+            
+            // Mes contrats (admin aussi)
+            const myResult = await db.execute({
+                sql: 'SELECT COUNT(*) as myTotal, SUM(totalTTC) as myCa FROM contrats WHERE createur = ?',
+                args: [req.user.username]
+            });
+            const myContrats = myResult.rows[0]?.myTotal || 0;
+            const myCA = myResult.rows[0]?.myCa || 0;
+            
+            res.json({
+                totalContrats,
+                totalCA,
+                myContrats,
+                myCA
+            });
+            
         } else {
-            db.run(`INSERT INTO vehicules (createur, modele, immat) VALUES (?, ?, ?)`, [req.user.username, modele, immat], (err2) => {
-                if (err2) return res.status(500).json({ message: err2.message });
-                res.json({ message: 'Véhicule créé' });
+            // Pour les sous-traitants : voir uniquement leurs données
+            
+            // Mes contrats
+            const myContratsResult = await db.execute({
+                sql: 'SELECT COUNT(*) as myTotal, SUM(totalTTC) as myCa FROM contrats WHERE createur = ?',
+                args: [req.user.username]
+            });
+            const myContrats = myContratsResult.rows[0]?.myTotal || 0;
+            const myCA = myContratsResult.rows[0]?.myCa || 0;
+            
+            // Mes clients
+            const clientsResult = await db.execute({
+                sql: 'SELECT COUNT(*) as nbClients FROM clients WHERE createur = ?',
+                args: [req.user.username]
+            });
+            const clients = clientsResult.rows[0]?.nbClients || 0;
+            
+            // Mes véhicules
+            const vehiculesResult = await db.execute({
+                sql: 'SELECT COUNT(*) as nbVehicules FROM vehicules WHERE createur = ?',
+                args: [req.user.username]
+            });
+            const vehicules = vehiculesResult.rows[0]?.nbVehicules || 0;
+            
+            res.json({
+                myContrats,
+                myCA,
+                clients,
+                vehicules
             });
         }
-    });
-});
-
-// DELETE
-router.delete('/:id', (req, res) => {
-    db.run('DELETE FROM vehicules WHERE id = ? AND createur = ?', [req.params.id, req.user.username], function(err) {
-        if (err) return res.status(500).json({ message: err.message });
-        res.json({ message: 'Véhicule supprimé' });
-    });
+        
+    } catch (error) {
+        console.error('Dashboard stats error:', error.message);
+        res.status(500).json({ message: error.message });
+    }
 });
 
 module.exports = router;
