@@ -23,6 +23,7 @@ app.use('/api/contrats', require('./routes/contrats'));
 app.use('/api/clients', require('./routes/clients'));
 app.use('/api/stats', require('./routes/stats'));
 
+app.use('/api/reservations', require('./routes/reservations'));
 app.use('/api/config', require('./routes/config'));
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'API Adem Rent Car fonctionnelle' });
