@@ -143,6 +143,26 @@ async function creerUtilisateursParDefaut() {
     }
     console.log('✅ Utilisateurs par défaut créés/vérifiés');
 }
+// Ajoute ceci après la table vehicules, avant la table historique_contrats
+
+// 5.5 Table reservations
+await db.execute(`
+    CREATE TABLE IF NOT EXISTS reservations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        client TEXT NOT NULL,
+        tel TEXT,
+        vehiculeId INTEGER NOT NULL,
+        vehiculeNom TEXT,
+        dateDebut TEXT NOT NULL,
+        dateFin TEXT NOT NULL,
+        statut TEXT DEFAULT 'en_attente',
+        notes TEXT,
+        dateCreation DATETIME DEFAULT CURRENT_TIMESTAMP,
+        createur TEXT,
+        FOREIGN KEY (vehiculeId) REFERENCES vehicules(id) ON DELETE CASCADE
+    )
+`);
+console.log('✅ Table reservations vérifiée/créée');
 
 // ⚠️ CORRECTION 4 : Lancer l'initialisation
 initialiserBaseDeDonnees();
