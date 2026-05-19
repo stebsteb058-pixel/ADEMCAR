@@ -1,17 +1,46 @@
-// ========== NOUVEAU CODE CORRIGÉ POUR TURSO ==========
+// ========== DATABASE-SQLITE.JS CORRIGÉ ==========
 
 const bcrypt = require('bcryptjs');
 const { createClient } = require('@libsql/client');
 
-// ⚠️ CORRECTION 1 : Le token doit être dans les variables d'environnement, pas en dur
+// Configuration Turso
 const db = createClient({
-    url: 'libsql://adem-rent-car-db-stebsteb058-pixel.aws-us-east-2.turso.io',
-    authToken: process.env.TURSO_AUTH_TOKEN  // 👈 METS TON TOKEN DANS LES VARIABLES D'ENVIRONNEMENT
+    url: process.env.TURSO_DATABASE_URL || 'libsql://adem-rent-car-db-stebsteb058-pixel.aws-us-east-2.turso.io',
+    authToken: process.env.TURSO_AUTH_TOKEN
 });
 
 console.log('✅ Connecté à Turso (SQLite cloud)');
 
-// ⚠️ CORRECTION 2 : Fonction pour créer les tables (async/await, pas serialize)
+// ========== FONCTION POUR CRÉER LES UTILISATEURS PAR DÉFAUT ==========
+async function creerUtilisateursParDefaut() {
+    const utilisateurs = [
+        { username: 'admin', password: 'admin123', role: 'admin', company: 'Adem Rent Car' },
+        { username: 'marii', password: 'sous1', role: 'sous_traitant', company: 'Marii' },
+        { username: 'jamel', password: 'sous2', role: 'sous_traitant', company: 'Jamel' },
+        { username: 'chokri', password: 'sous3', role: 'sous_traitant', company: 'Chokri' },
+        { username: 'tmim', password: 'sous4', role: 'sous_traitant', company: 'Tmim' },
+        { username: 'nader', password: 'sous5', role: 'sous_traitant', company: 'Nader' },
+        { username: 'mouhamed', password: 'sous6', role: 'sous_traitant', company: 'Mouhamed' },
+        { username: 'wajih', password: 'sous7', role: 'sous_traitant', company: 'Wajih' },
+        { username: 'chrif', password: 'sous8', role: 'sous_traitant', company: 'Chrif' },
+        { username: 'saiid', password: 'sous9', role: 'sous_traitant', company: 'Saiid' }
+    ];
+
+    for (const user of utilisateurs) {
+        try {
+            const hashedPassword = await bcrypt.hash(user.password, 10);
+            await db.execute({
+                sql: `INSERT OR IGNORE INTO users (username, password, role, company) VALUES (?, ?, ?, ?)`,
+                args: [user.username, hashedPassword, user.role, user.company]
+            });
+        } catch (error) {
+            console.error(`Erreur création utilisateur ${user.username}:`, error.message);
+        }
+    }
+    console.log('✅ Utilisateurs par défaut créés/vérifiés');
+}
+
+// ========== FONCTION D'INITIALISATION DE LA BASE ==========
 async function initialiserBaseDeDonnees() {
     try {
         // 1. Table users
@@ -88,6 +117,11 @@ async function initialiserBaseDeDonnees() {
                 createur TEXT,
                 modele TEXT,
                 immat TEXT,
+                couleur TEXT,
+                annee TEXT,
+                carburant TEXT,
+                prixJournalier REAL,
+                notes TEXT,
                 createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -109,9 +143,8 @@ async function initialiserBaseDeDonnees() {
         `);
         console.log('✅ Table historique_contrats vérifiée/créée');
 
-        // 7. Créer les utilisateurs par défaut
-        await creerUtilisateursParDefaut();
-  await db.execute(`
+        // 7. Table reservations
+        await db.execute(`
             CREATE TABLE IF NOT EXISTS reservations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 client TEXT NOT NULL,
@@ -127,6 +160,10 @@ async function initialiserBaseDeDonnees() {
             )
         `);
         console.log('✅ Table reservations vérifiée/créée');
+
+        // 8. Créer les utilisateurs par défaut
+        await creerUtilisateursParDefaut();
+
         console.log('🎉 Base de données initialisée avec succès !');
         
     } catch (error) {
@@ -134,10 +171,8 @@ async function initialiserBaseDeDonnees() {
     }
 }
 
-
-
-// ⚠️ CORRECTION 4 : Lancer l'initialisation
+// Lancer l'initialisation
 initialiserBaseDeDonnees();
 
-// ⚠️ CORRECTION 5 : Exporter la db
+// Exporter la db
 module.exports = db;
