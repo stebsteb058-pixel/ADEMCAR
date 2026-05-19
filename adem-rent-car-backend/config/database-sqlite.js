@@ -111,7 +111,22 @@ async function initialiserBaseDeDonnees() {
 
         // 7. Créer les utilisateurs par défaut
         await creerUtilisateursParDefaut();
-
+  await db.execute(`
+            CREATE TABLE IF NOT EXISTS reservations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                client TEXT NOT NULL,
+                tel TEXT,
+                vehiculeId INTEGER NOT NULL,
+                vehiculeNom TEXT,
+                dateDebut TEXT NOT NULL,
+                dateFin TEXT NOT NULL,
+                statut TEXT DEFAULT 'en_attente',
+                notes TEXT,
+                dateCreation DATETIME DEFAULT CURRENT_TIMESTAMP,
+                createur TEXT
+            )
+        `);
+        console.log('✅ Table reservations vérifiée/créée');
         console.log('🎉 Base de données initialisée avec succès !');
         
     } catch (error) {
@@ -119,50 +134,7 @@ async function initialiserBaseDeDonnees() {
     }
 }
 
-// ⚠️ CORRECTION 3 : Fonction pour créer les utilisateurs (async/await)
-async function creerUtilisateursParDefaut() {
-    const utilisateurs = [
-        { username: 'admin', password: 'admin123', role: 'admin', company: 'Adem Rent Car' },
-        { username: 'marii', password: 'sous1', role: 'sous_traitant', company: 'Marii' },
-        { username: 'jamel', password: 'sous2', role: 'sous_traitant', company: 'Jamel' },
-        { username: 'chokri', password: 'sous3', role: 'sous_traitant', company: 'chokri' },
-        { username: 'tmim', password: 'sous4', role: 'sous_traitant', company: 'tmim' },
-        { username: 'nader', password: 'sous5', role: 'sous_traitant', company: 'nader' },
-        { username: 'mouhamed', password: 'sous6', role: 'sous_traitant', company: 'mouhamed' },
-        { username: 'wajih', password: 'sous7', role: 'sous_traitant', company: 'wajih' },
-        { username: 'chrif', password: 'sous8', role: 'sous_traitant', company: 'chrif' },
-        { username: 'saiid', password: 'sous9', role: 'sous_traitant', company: 'saiid' }
-    ];
 
-    for (const user of utilisateurs) {
-        const hashedPassword = await bcrypt.hash(user.password, 10);
-        await db.execute({
-            sql: `INSERT OR IGNORE INTO users (username, password, role, company) VALUES (?, ?, ?, ?)`,
-            args: [user.username, hashedPassword, user.role, user.company]
-        });
-    }
-    console.log('✅ Utilisateurs par défaut créés/vérifiés');
-}
-// Ajoute ceci après la table vehicules, avant la table historique_contrats
-
-// 5.5 Table reservations
-await db.execute(`
-    CREATE TABLE IF NOT EXISTS reservations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        client TEXT NOT NULL,
-        tel TEXT,
-        vehiculeId INTEGER NOT NULL,
-        vehiculeNom TEXT,
-        dateDebut TEXT NOT NULL,
-        dateFin TEXT NOT NULL,
-        statut TEXT DEFAULT 'en_attente',
-        notes TEXT,
-        dateCreation DATETIME DEFAULT CURRENT_TIMESTAMP,
-        createur TEXT,
-        FOREIGN KEY (vehiculeId) REFERENCES vehicules(id) ON DELETE CASCADE
-    )
-`);
-console.log('✅ Table reservations vérifiée/créée');
 
 // ⚠️ CORRECTION 4 : Lancer l'initialisation
 initialiserBaseDeDonnees();
