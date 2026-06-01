@@ -15,7 +15,7 @@ async function ensureTableExists() {
                 createur TEXT,
                 modele TEXT,
                 immat TEXT,
-                couleur TEXT,
+               
                 annee TEXT,
                 carburant TEXT,
                 prixJournalier REAL,
@@ -84,7 +84,7 @@ router.get('/:id', async (req, res) => {
 
 // ========== POST créer un véhicule ==========
 router.post('/', async (req, res) => {
-    const { modele, immat, couleur, annee, carburant, prixJournalier, notes } = req.body;
+    const { modele, immat, annee, carburant, prixJournalier, notes } = req.body;
     
     if (!modele || !immat) {
         return res.status(400).json({ message: 'Modèle et immatriculation requis' });
@@ -102,13 +102,13 @@ router.post('/', async (req, res) => {
         }
         
         const result = await db.execute({
-            sql: `INSERT INTO vehicules (createur, modele, immat, couleur, annee, carburant, prixJournalier, notes) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            sql: `INSERT INTO vehicules (createur, modele, immat, annee, carburant, prixJournalier, notes) 
+                  VALUES (?, ?, ?, ?, ?, ?,  ?)`,
             args: [
                 req.user.username, 
                 modele, 
                 immat, 
-                couleur || '', 
+               
                 annee || '', 
                 carburant || 'Essence', 
                 prixJournalier || 80, 
@@ -131,7 +131,7 @@ router.post('/', async (req, res) => {
 
 // ========== PUT modifier un véhicule ==========
 router.put('/:id', async (req, res) => {
-    const { modele, immat, couleur, annee, carburant, prixJournalier, notes } = req.body;
+    const { modele, immat,  annee, carburant, prixJournalier, notes } = req.body;
     const vehiculeId = req.params.id;
     
     if (!modele || !immat) {
@@ -169,9 +169,9 @@ router.put('/:id', async (req, res) => {
         
         await db.execute({
             sql: `UPDATE vehicules 
-                  SET modele = ?, immat = ?, couleur = ?, annee = ?, carburant = ?, prixJournalier = ?, notes = ?
+                  SET modele = ?, immat = ?, annee = ?, carburant = ?, prixJournalier = ?, notes = ?
                   WHERE id = ?`,
-            args: [modele, immat, couleur || '', annee || '', carburant || 'Essence', prixJournalier || 80, notes || '', vehiculeId]
+            args: [modele, immat, annee || '', carburant || 'Essence', prixJournalier || 80, notes || '', vehiculeId]
         });
         
         res.json({ message: 'Véhicule mis à jour avec succès' });
