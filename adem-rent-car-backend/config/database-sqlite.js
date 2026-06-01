@@ -96,7 +96,7 @@ async function initialiserBaseDeDonnees() {
         actualReturnHour TEXT,
         actualReturnKms INTEGER,
         actualReturnFuel TEXT,
-        returnObservations TEXT,
+        returnObservations TEXT, 
         isReturned INTEGER DEFAULT 0,
         joursNonUtilises INTEGER DEFAULT 0,
         remboursement REAL DEFAULT 0
