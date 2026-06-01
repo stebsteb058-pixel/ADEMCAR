@@ -91,7 +91,15 @@ async function initialiserBaseDeDonnees() {
                 dateDepart TEXT, heureDepart TEXT, dateRetour TEXT, heureRetour TEXT,
                 nbJours INTEGER, prixJournalier REAL, locationHT REAL,
                 assuranceRC REAL, assurancePers REAL, penalite REAL,
-                tva REAL, totalTTC REAL, lieu TEXT, dateSignature TEXT, dommages TEXT 
+                tva REAL, totalTTC REAL, lieu TEXT, dateSignature TEXT, dommages TEXT ,
+                actualReturnDate TEXT,
+        actualReturnHour TEXT,
+        actualReturnKms INTEGER,
+        actualReturnFuel TEXT,
+        returnObservations TEXT,
+        isReturned INTEGER DEFAULT 0,
+        joursNonUtilises INTEGER DEFAULT 0,
+        remboursement REAL DEFAULT 0
             )
         `);
         console.log('✅ Table contrats vérifiée/créée');
