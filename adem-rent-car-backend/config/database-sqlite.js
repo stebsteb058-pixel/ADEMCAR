@@ -117,7 +117,7 @@ async function initialiserBaseDeDonnees() {
                 createur TEXT,
                 modele TEXT,
                 immat TEXT,
-                couleur TEXT,
+               
                 annee TEXT,
                 carburant TEXT,
                 prixJournalier REAL,
